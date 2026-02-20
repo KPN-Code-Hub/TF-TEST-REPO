@@ -54,6 +54,20 @@ jobs:
 
           echo "final=true" >> "$GITHUB_OUTPUT"
 
+      - name: 'Task: Verify secrets are available'
+        if: steps.check-final.outputs.final == 'true'
+        shell: bash
+        run: |
+          if [[ -z "${{ secrets.PR_NOTIFY_GH_APP_ID }}" ]]; then
+            echo "::error::Secret PR_NOTIFY_GH_APP_ID is not available. Check organization secret visibility settings."
+            exit 1
+          fi
+          if [[ -z "${{ secrets.PR_NOTIFY_GH_APP_PRIV_KEY }}" ]]; then
+            echo "::error::Secret PR_NOTIFY_GH_APP_PRIV_KEY is not available. Check organization secret visibility settings."
+            exit 1
+          fi
+          echo "::notice::Secrets are available"
+
       - name: 'Task: Create GitHub App token'
         if: steps.check-final.outputs.final == 'true'
         id: app-token
