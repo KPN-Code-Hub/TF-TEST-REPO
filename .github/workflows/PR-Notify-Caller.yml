@@ -1,24 +1,23 @@
-# =============================================================================
+# ==============================================================================================================================================
 # PR-Notify-Caller
-# =============================================================================
+# ==============================================================================================================================================
 #
 # Lightweight workflow for managed repositories to trigger the centralized PR-Notification workflow in TO-Toolkit via repository_dispatch.
 #
-# This file is distributed automatically by TO-Toolkit's repo-management pipeline via Terraform file sync. Do not edit it directly in this repository
-# changes will be overwritten on the next sync.
+# This file is distributed automatically by TO-Toolkit's repo-management pipeline via Terraform file sync.
+# Only edit this in TO-Toolkit repository (repo-baseline)
 #
-# =============================================================================
+# ==============================================================================================================================================
 # PREREQUISITES
-# =============================================================================
+# ==============================================================================================================================================
 #
-# Organization-level secrets (scoped to this repository):
+# Organization-level secrets:
 #   - PR_NOTIFY_GH_APP_ID       (GitHub App ID for App-TO-PR-Notify)
 #   - PR_NOTIFY_GH_APP_PRIV_KEY (GitHub App private key)
 #
-# =============================================================================
+# ==============================================================================================================================================
 
-name: "Workflow: PR-Notify-Caller"
-run-name: "Workflow: PR-Notify-Caller - [${{ github.event.pull_request.title }}]"
+name: "PR-Notify-Caller"
 
 on:
   pull_request:
@@ -26,7 +25,7 @@ on:
 
 jobs:
   dispatch-notification:
-    name: 'Job: Dispatch PR notification to TO-Toolkit'
+    name: 'Dispatch PR notification to TO-Toolkit'
     runs-on: ubuntu-latest
     if: >-
       github.event.action == 'opened' ||
@@ -51,22 +50,7 @@ jobs:
               exit 0
             fi
           fi
-
           echo "final=true" >> "$GITHUB_OUTPUT"
-
-      - name: 'Task: Verify secrets are available'
-        if: steps.check-final.outputs.final == 'true'
-        shell: bash
-        run: |
-          if [[ -z "${{ secrets.PR_NOTIFY_GH_APP_ID }}" ]]; then
-            echo "::error::Secret PR_NOTIFY_GH_APP_ID is not available. Check organization secret visibility settings."
-            exit 1
-          fi
-          if [[ -z "${{ secrets.PR_NOTIFY_GH_APP_PRIV_KEY }}" ]]; then
-            echo "::error::Secret PR_NOTIFY_GH_APP_PRIV_KEY is not available. Check organization secret visibility settings."
-            exit 1
-          fi
-          echo "::notice::Secrets are available"
 
       - name: 'Task: Create GitHub App token'
         if: steps.check-final.outputs.final == 'true'
@@ -92,5 +76,6 @@ jobs:
               "pr_url": "${{ github.event.pull_request.html_url }}",
               "pr_author": "${{ github.event.pull_request.user.login }}",
               "pr_branch": "${{ github.event.pull_request.head.ref }}",
-              "repo_name": "${{ github.repository }}"
+              "repo_name": "${{ github.repository }}",
+              "repo_short_name": "${{ github.event.repository.name }}"
             }
